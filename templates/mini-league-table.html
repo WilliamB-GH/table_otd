@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Mini-League
+{% endblock %}
+
+{% block main %}
+<div id="content-wrapper">
+    <div class="content">
+        <h2>From {{ start_date }} To {{ end_date }}</h2>
+    </div>
+    <div class="tabs">
+        <input type="radio" name="tabs" id="tab-table" checked>
+        <label for="tab-table">Table</label>
+        <input type="radio" name="tabs" id="tab-results">
+        <label for="tab-results">Results</label>
+        <div class="content tab-content" id="content-table">
+            <table>
+                <thead>
+                    <tr>
+                        <td>Pos</td>
+                        <td class="team-name"><strong>Name</strong></td>
+                        <td>Pld</td>
+                        <td><strong>Pts</strong></td>
+                        <td>GD</td>
+                        <td class="separated WLD">W</td>
+                        <td class="WLD">D</td>
+                        <td class="WLD">L</td>
+                        <td class="separated">GF</td>
+                        <td>GA</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in table %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td class="team-name"><strong>{{ row['id'] }}</strong></td>
+                            <td>{{ row['games_played'] }}</td>
+                            <td><strong>{{ row['points'] }}</strong></td>
+                            <td>{{ row['goal_difference'] }}</td>
+                            <td class="separated WLD">{{ row['wins'] }}</td>
+                            <td class="WLD">{{ row['draws'] }}</td>
+                            <td class="WLD">{{ row['losses'] }}</td>
+                            <td class="separated">{{ row['goals_for'] }}</td>
+                            <td>{{ row['goals_against'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="content tab-content" id="content-results">
+            <table>
+                <thead style="font-weight: bold;">
+                    <tr>
+                        <td style="text-align: left;">Date</td>
+                        <td style="text-align: center;">Home</td>
+                        <td style="text-align: center;">Score</td>
+                        <td style="text-align: center;">Away</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in recent_scores %}
+                        <tr>
+                            <td style="text-align: left;">{{ row['match_date'] }}</td>
+                            <td>{{ row['home_team'] }}</td>
+                            <td style="text-align: center;">{{ row['home_score'] }}-{{ row['away_score'] }}</td>
+                            <td style="text-align: left;">{{ row['away_team'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

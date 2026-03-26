@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Head-to-Head
+{% endblock %}
+
+{% block main %}
+
+<div class="container content">
+    <form action="/head-to-head" method="POST" onsubmit="return validateForm()">
+        <div class="content" style="gap: 1em;">
+            <select id="firstTeam" name="team"></select>
+            <select id="secondTeam" name="team"></select>
+        </div>
+        <div class="content" style="margin-top: 0.5em; display: inline-block; vertical-align: middle;">
+            <label for="start_date">Start Date:</label>
+            <input type="date" class="date" name="start_date" min="1992-08-01" max="2026-03-17" value="2000-08-01"/>
+            <label for="end_date">End Date:</label>
+            <input type="date" class="date" name="end_date" min="1992-08-01" max="2026-03-17" value="2026-03-17"/>
+            <button type="submit" >Submit</button>
+        </div>
+    </form>
+    <script src="/static/head-to-head.js"></script>
+</div>
+
+{% endblock %}
