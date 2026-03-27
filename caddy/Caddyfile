@@ -1,0 +1,4 @@
+www.prem-otd.wjmb.click, prem-otd.wjmb.click{
+
+    reverse_proxy app:5000
+}

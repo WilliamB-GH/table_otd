@@ -1,0 +1,22 @@
+services:
+  # Build the app services
+  app:
+    build: ./app
+    restart: always
+  caddy:
+    image: caddy:latest
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  caddy_data:
+  caddy_config:

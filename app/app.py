@@ -187,3 +187,7 @@ def teams():
     ''' API to return the names and ids of all teams to have played in the premiership'''
     teams_list = data.get_prem_team_names()
     return flask.jsonify(teams_list)
+
+
+if __name__ == '__main__':
+    app.run('0.0.0.0')
