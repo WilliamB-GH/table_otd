@@ -1,0 +1,51 @@
+#cloud-config
+
+package_update: true
+
+packages:
+  - git
+  - docker
+
+users:
+  - default
+  - name: ec2-user
+    groups:
+      - docker
+      - sudo
+
+runcmd:
+  # Log function to simplify logging
+  - |
+    export log_file="/var/log/cloud-init-script.log"
+    echo "Starting cloud-init script at $(date)" > $log_file
+
+  # Install Docker
+  - echo "Starting Docker install at $(date)" >> $log_file
+  - sudo yum install -y docker && echo "Docker installation completed at $(date)" >> $log_file
+
+  # Start Docker and enable on boot
+  - echo "Starting Docker service at $(date)" >> $log_file
+  - sudo systemctl enable docker && sudo systemctl start docker && echo "Docker started successfully at $(date)" >> $log_file
+
+  # Wait for Docker to be fully started
+  - echo "Waiting for Docker to be ready..." >> $log_file
+  - |
+    until sudo docker info >/dev/null 2>&1; do
+      sleep 2
+    done
+    echo "Docker is now ready at $(date)" >> $log_file
+
+  # Install buildx (Docker BuildKit)
+  - echo "Starting buildx installation at $(date)" >> $log_file
+  - |
+    ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+    BUILDX_URL=$(curl -s https://api.github.com/repos/docker/buildx/releases/latest | grep "browser_download_url.*linux-$ARCH" | cut -d '"' -f 4)
+    curl -L $BUILDX_URL -o /root/.docker/cli-plugins/docker-buildx && chmod +x /root/.docker/cli-plugins/docker-buildx && echo "buildx installed at $(date)" >> $log_file
+
+  # Install Docker Compose
+  - echo "Starting Docker Compose installation at $(date)" >> $log_file
+  - mkdir -p /usr/local/lib/docker/cli-plugins && curl -SL https://github.com/docker/compose/releases/download/v2.39.4/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose && chmod +x /usr/local/lib/docker/cli-plugins/docker-compose && echo "Docker Compose installed at $(date)" >> $log_file
+
+  # Clone the repo and bring up the containers
+  - echo "Cloning repo and running containers at $(date)" >> $log_file
+  - cd /root && git clone https://github.com/WilliamB-GH/table_otd.git && cd table_otd && docker compose up -d && echo "Containers started at $(date)" >> $log_file
