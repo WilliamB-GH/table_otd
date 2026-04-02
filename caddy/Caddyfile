@@ -1,4 +1,7 @@
-www.prem-otd.wjmb.click, prem-otd.wjmb.click 
-{
+{$DOMAIN_NAME:-localhost} {
+    reverse_proxy app:5000
+}
+
+localhost:80 {
     reverse_proxy app:5000
 }

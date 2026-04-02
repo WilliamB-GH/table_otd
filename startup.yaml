@@ -40,12 +40,17 @@ runcmd:
   - |
     ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
     BUILDX_URL=$(curl -s https://api.github.com/repos/docker/buildx/releases/latest | grep "browser_download_url.*linux-$ARCH" | cut -d '"' -f 4)
-    curl -L $BUILDX_URL -o /root/.docker/cli-plugins/docker-buildx && chmod +x /root/.docker/cli-plugins/docker-buildx && echo "buildx installed at $(date)" >> $log_file
+    curl -L $BUILDX_URL -o $HOME/.docker/cli-plugins/docker-buildx && chmod +x $HOME/.docker/cli-plugins/docker-buildx && echo "buildx installed at $(date)" >> $log_file
 
   # Install Docker Compose
   - echo "Starting Docker Compose installation at $(date)" >> $log_file
   - mkdir -p /usr/local/lib/docker/cli-plugins && curl -SL https://github.com/docker/compose/releases/download/v2.39.4/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose && chmod +x /usr/local/lib/docker/cli-plugins/docker-compose && echo "Docker Compose installed at $(date)" >> $log_file
 
-  # Clone the repo and bring up the containers
+  # Environment variables
+  - echo "DOMAIN_NAME=prem-otd.wjmb.click" >> /etc/environment
+
+  # Clone the repo, update the domain with the environment variable and bring up the containers
   - echo "Cloning repo and running containers at $(date)" >> $log_file
-  - cd /root && git clone https://github.com/WilliamB-GH/table_otd.git && cd table_otd && docker compose up -d && echo "Containers started at $(date)" >> $log_file
+  - sudo cd $HOME && git clone https://github.com/WilliamB-GH/table_otd.git && cd table_otd 
+  - sed -i "s/\${DOMAIN_NAME}/$DOMAIN_NAME/" docker-compose.yml
+  - sudo docker compose up -d && echo "Containers started at $(date)" >> $log_file

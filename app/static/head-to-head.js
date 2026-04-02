@@ -32,9 +32,6 @@ function checkDuplicates(){
     document.getElementById("secondTeam").addEventListener("change", e => {
         const selectedOptionTwo = e.target.selectedOption;
     })
-    if (selectedOptionOne == selectedOptionTwo){
-        
-    }
 }
 
 function validateForm() {
