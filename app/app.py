@@ -1,10 +1,14 @@
+# 3rd party imports
 import flask
-import data, helpers
 import datetime as dt
 from operator import itemgetter
-import page_build as pb
 from sys import getsizeof
-import traceback
+
+# Local imports
+import data, helpers
+import head_to_head
+import page_build as pb
+
 
 # Constants
 WEEK = dt.timedelta(days=7)
@@ -110,8 +114,8 @@ def head_to_head():
         score['home_team'] = teams[score['home_team']]
         score['away_team'] = teams[score['away_team']]
  
-    chart_data = helpers.num_results(recent_scores, team_names)
-    chart = helpers.chart(chart_data, team_names)
+    chart_data = head_to_head.num_results(recent_scores, team_names)
+    chart = head_to_head.chart(chart_data, team_names)
 
     return flask.render_template('head-to-head-output.html', 
                                     recent_scores=recent_scores,
@@ -153,7 +157,7 @@ def mini_league():
         table.append(helpers.table_initialise(int(team)))
     
     
-    results = helpers.results_construct(start_date, end_date, data.get_mini_league_results, team_ids)
+    results = helpers.results_construct(start_date, end_date, team_ids)
     
     table = helpers.make_table(results, table)
 

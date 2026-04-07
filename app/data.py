@@ -1,14 +1,14 @@
 import sqlite3
 
 
-def get_results(start_date:str,end_date:str)->list:
+def query_builder(team_ids:list = None) -> list:
     '''
-    Query fixtures database
-    return format: list of tuples
+    Return a database query string containing filters for 
+    a given list of teams where said list is provided. Where
+    no list is provided
     '''
-    con=sqlite3.connect("fixtures.db",check_same_thread=False)
-    db = con.cursor()
-    query_result = db.execute(f'''
+
+    base_query = '''
         SELECT
             home_team_id, 
             away_team_id, 
@@ -18,34 +18,44 @@ def get_results(start_date:str,end_date:str)->list:
             FROM fixtures
             WHERE fixtures.match_date BETWEEN date(?) 
                 AND date(?)
-            ORDER BY match_date ASC;''',[start_date, end_date])
+    '''
+
+    if team_ids:
+
+        return f'''
+            {base_query}
+                AND home_team_id IN ({','.join(['?'] * len(team_ids))}) 
+                AND away_team_id IN ({','.join(['?'] * len(team_ids))})
+            ORDER BY match_date ASC;
+        '''
+
+    else:
+        return f'''
+        {base_query}
+            ORDER BY match_date ASC;
+        '''
+
+
+def get_results(start_date:str, end_date:str, team_ids:list = None)->list[tuple]:
+    '''
+    Query fixtures database for all games between start and end date
+    returns a list of tuples
+    '''
+
+    con=sqlite3.connect("fixtures.db",check_same_thread=False)
+    db = con.cursor()
+
+    if team_ids:
+        query = query_builder(team_ids)
+        query_result = db.execute(query, [start_date, end_date] + team_ids + team_ids)
+
+    else:
+        query = query_builder()
+        query_result = db.execute(query, [start_date, end_date])
+
     results = query_result.fetchall()
     con.close()
     
-    return results
-
-
-def get_mini_league_results(start_date:str,end_date:str, team_ids:list)->list:
-    '''
-    Query fixtures database 
-    '''
-    con=sqlite3.connect("fixtures.db",check_same_thread=False)
-    db = con.cursor()
-    query_result = db.execute(f'''
-        SELECT
-            home_team_id, 
-            away_team_id, 
-            home_score, 
-            away_score,
-            match_date 
-            FROM fixtures
-            WHERE fixtures.match_date BETWEEN date(?) 
-                AND date(?)
-                AND home_team_id IN ({','.join(['?'] * len(team_ids))}) 
-                AND away_team_id IN ({','.join(['?'] * len(team_ids))})
-            ORDER BY match_date ASC;''', [start_date, end_date] + team_ids + team_ids)
-    results = query_result.fetchall()
-    con.close()
     return results
 
 
@@ -78,14 +88,14 @@ def get_team_names(team_ids:list)->dict:
 def get_prem_team_names()->list:
     ''' 
     Query the teams table to create a lookup in memory. 
-    Return format : [{id: name}]
+    Return format : [{id: friendly name}]
     '''
 
     teams_list=[]
     con=sqlite3.connect("fixtures.db",check_same_thread=False)
     db = con.cursor()
 
-    query_result = db.execute("SELECT * FROM teams WHERE id IN (SELECT home_team_id from fixtures);")
+    query_result = db.execute("SELECT * FROM teams WHERE id IN (SELECT home_team_id FROM fixtures);")
     teams = query_result.fetchall()
 
     # Build dict of ids and names

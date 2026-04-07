@@ -1,14 +1,16 @@
-import data, helpers
+# 3rd party imports
 import datetime as dt
 import flask
+from operator import itemgetter
 
+# Local imports
+import data, helpers
 
 # Constants
 WEEK = dt.timedelta(days=7)
 DAY = dt.timedelta(days=1)
 MAX_DATE = dt.datetime.today().strftime('%Y-%m-%d')
 MIN_DATE = '1992-08-01'
-from operator import itemgetter
 
 
 def index(input_date):
@@ -30,8 +32,8 @@ def index(input_date):
         'MIN_DATE': MIN_DATE,
         }
 
-    page_args['table_date'] = dt.datetime.strftime(input_date,'%d-%m-%Y')
-    page_args['date'] = dt.datetime.strftime(input_date,'%Y-%m-%d')
+    page_args['table_date'] = dt.datetime.strftime(input_date, '%d-%m-%Y')
+    page_args['date'] = dt.datetime.strftime(input_date, '%Y-%m-%d')
 
     # Work out what date the season started
     season_start = helpers.season_start_calculator(input_date)
@@ -41,7 +43,7 @@ def index(input_date):
     teams_dict = helpers.build_teams_dict(input_date)
     
     # Collect results
-    results = helpers.results_construct(season_start,input_date,data.get_results)
+    results = helpers.results_construct(season_start, input_date)
 
     # Create a table with all the teams, before any games have been played.
     for team in teams_dict.keys():

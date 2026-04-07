@@ -15,7 +15,6 @@ body {
 
 #navbar{
     display: flex; 
-    /* flex-direction: row; */
     flex-wrap: nowrap;
     justify-content: center;
     gap: 1em;
@@ -98,15 +97,6 @@ th, td, tr {
 h1 {
     text-align: center;
 }
-
-
-
-
-/* .tabs {
-    display: flex;
-    flex-wrap: wrap;
-    max-width: 800px;
-} */
 
 /* Tabbed content for main page. */
 
