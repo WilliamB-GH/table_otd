@@ -64,8 +64,8 @@ def get_results(start_date:str, end_date:str, team_ids:list = [])->list[tuple]:
 
 def get_team_names(team_ids:list = [])->dict:
     ''' 
-    # Query the teams table to create a lookup in memory. 
-    # Return format : {id: friendly name}
+    Query the teams table to create a lookup in memory. 
+    Return format : {id: friendly name}
     '''
 
     teams_dict={}

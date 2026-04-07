@@ -215,6 +215,10 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+# VSCode settings
+.vscode/*
+.vscode
+
 # Terraform stuff
 
 # Local .terraform directories

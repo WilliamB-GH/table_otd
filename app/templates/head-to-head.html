@@ -24,10 +24,10 @@
         </div>
         <div class="content" style="margin-top: 0.5em; display: inline-block; vertical-align: middle;">
             <label for="start_date">Start Date:</label>
-            <input type="date" class="date" name="start_date" min="1992-08-01" max="2026-03-17" value="2000-08-01"/>
+            <input type="date" class="date" id="start_date" name="start_date" min="{{MIN_DATE}}" max="{{MAX_DATE}}" value="{{MIN_DATE}}"/>
             <label for="end_date">End Date:</label>
-            <input type="date" class="date" name="end_date" min="1992-08-01" max="2026-03-17" value="2026-03-17"/>
-            <button type="submit" >Submit</button>
+            <input type="date" class="date" id="end_date" name="end_date" min="{{MIN_DATE}}" max="{{MAX_DATE}}" value="{{MAX_DATE}}"/>
+            <button type="submit" class="button">Submit</button>
         </div>
     </form>
     <script src="/static/head-to-head.js"></script>

@@ -1,4 +1,8 @@
 
+// Most of the below is done with the aid of AI, specifically to avoid using frameworks
+// I manually debugged issues as they came up, specifically by implementing the async
+// work and the init function.
+
 const available = document.getElementById("available")
 const selected = document.getElementById("selected")
 const filter = document.getElementById("filter")
@@ -41,11 +45,8 @@ async function render() {
             if (team.text.toLowerCase().includes(term)) {
                 available.appendChild(opt)
             }
-
         }
-
     })
-
 }
 
 
@@ -58,7 +59,6 @@ function moveToSelected() {
     })
 
     render()
-
 }
 
 // Move values from selected to available
@@ -69,7 +69,6 @@ function moveToAvailable() {
     })
 
     render()
-
 }
 
 // Move all teams from selected back to available
@@ -77,7 +76,6 @@ function removeAll() {
 
     selectedValues.clear()
     render()
-
 }
 
 // Initialise page with values populated from database

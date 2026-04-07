@@ -35,22 +35,8 @@ def index():
         return pb.index(dt.datetime.today())
     
     # Check input is a reasonable size and formatted correctly
-    try:
-        for input in flask.request.form.values():
-            if getsizeof(input) != DATE_SIZE:
-                print(f"Date input incorrect size: {input}")
-                return flask.render_template('broken.html')
-            
-            # Get input date
-            input_date = dt.datetime.strptime(input,'%Y-%m-%d')
-
-            # validate it's in bounds
-            if input_date > MAX_DATE:
-                input_date = MAX_DATE
-            elif input_date < MIN_DATE:
-                input_date = MIN_DATE
-    except:
-        return flask.render_template('broken.html')
+    for input in flask.request.form.values():
+        input_date = helpers.date_validation(input)
     
     # the 'Previous week' button has been pressed so subtract a week from the previous date.
     if "prev_week" in flask.request.form:
@@ -83,17 +69,25 @@ def head_to_head():
     teams = data.get_team_names()
 
     # Base template
-    base_page = flask.render_template('head-to-head.html', teams=teams)
+    base_page = flask.render_template('head-to-head.html', 
+                                      teams=teams, 
+                                      MIN_DATE=dt.datetime.strftime(MIN_DATE, "%Y-%m-%d"), 
+                                      MAX_DATE=dt.datetime.strftime(MAX_DATE, "%Y-%m-%d"))
 
     # Show selection page if it's not a post request
     if flask.request.method != 'POST':
         return base_page
 
+    # Validate correct number of values received
+    if len(flask.request.form.getlist("team")) != 2:
+        return base_page
+    
     # Try to initialise the variables from form input
     try:
+
         team_ids = [int(team) for team in flask.request.form.getlist("team")]
-        start_date = dt.datetime.strptime(flask.request.form.get("start_date"),'%Y-%m-%d')
-        end_date = dt.datetime.strptime(flask.request.form.get("end_date"),'%Y-%m-%d')
+        start_date = flask.request.form.get("start_date")
+        end_date = flask.request.form.get("end_date")
     
     # Throw error if something isn't right
     except:
@@ -106,14 +100,30 @@ def head_to_head():
     # Valdidate the same team hasn't been chosen twice
     if team_ids[0] == team_ids[1]:
         return base_page
+    
+    # Validate the dates are within range and the right size
+    start_date = helpers.date_validation(start_date)
+    end_date = helpers.date_validation(end_date)
+
+    # Validate start date is before end date
+    if start_date > end_date:
+        return base_page
 
     # Input validation is done now
 
+    results = helpers.results_construct(start_date, end_date, team_ids)
+
+    # If we've picked dates that have no fixtures, we're not going to go any further
+    # This isn't handled very elegantly, it spits the user back out with no explanation
+    # so I'll come back and fix this in a future update.
+    if len(results) < 1:
+        return base_page
+    
     # Create a list of the team names by pulling the values from the team ids dict
     teams = data.get_team_names(team_ids)
     team_names = list(teams.values())
-    
-    results = helpers.results_construct(start_date, end_date, team_ids)
+
+
     recent_scores = sorted(results, key=itemgetter('match_date'), reverse=True)
     for score in recent_scores:
         score['home_team'] = teams[score['home_team']]
@@ -130,9 +140,15 @@ def head_to_head():
 @app.route('/mini-league', methods=["GET", "POST"])
 def mini_league():
 
+    base_page = flask.render_template('mini-league.html',
+                                        MIN_DATE=dt.datetime.strftime(MIN_DATE, "%Y-%m-%d"), 
+                                        MAX_DATE=dt.datetime.strftime(MAX_DATE, "%Y-%m-%d"))
 
     if flask.request.method != 'POST':
-        return flask.render_template('mini-league.html')
+        return base_page
+    
+    start_date = flask.request.form.get("start_date")
+    end_date = flask.request.form.get("end_date")
     
     # Check that we're being given something of the right size to be a date
     if getsizeof(flask.request.form.get("start_date")) != DATE_SIZE or getsizeof(flask.request.form.get("end_date")) != DATE_SIZE:
@@ -140,12 +156,21 @@ def mini_league():
 
     # Check we have at least two teams
     if len(flask.request.form.getlist("teams")) < 2:
-        return flask.render_template('mini-league.html')
+        return base_page
 
     # Try to initialise the variables from form input
     try:
-        start_date = dt.datetime.strptime(flask.request.form.get("start_date"),'%Y-%m-%d')
-        end_date = dt.datetime.strptime(flask.request.form.get("end_date"),'%Y-%m-%d')
+        start_date = flask.request.form.get("start_date")
+        end_date = flask.request.form.get("end_date")
+
+        # Validate the dates are within range and the right size
+        # This also converts them to datetime objects in YYYY-mm-dd format.
+        start_date = helpers.date_validation(start_date)
+        end_date = helpers.date_validation(end_date)
+
+        # Validate start date is before end date
+        if start_date > end_date:
+            return base_page
     
     # Throw error if something isn't right
     except:
@@ -161,8 +186,13 @@ def mini_league():
         team_ids.append(int(team))
         table.append(helpers.table_initialise(int(team)))
     
-    
     results = helpers.results_construct(start_date, end_date, team_ids)
+
+    # Just as in head-to-head, if we've picked dates that have no fixtures, we're not 
+    # going to go any further. This isn't handled very elegantly, it spits the user back 
+    # out with no explanation, so I'll come back and fix this in a future update.
+    if len(results) < 1:
+        return base_page
     
     table = helpers.make_table(results, table)
 
@@ -182,14 +212,12 @@ def mini_league():
             match['away_team'] = teams_dict[match['away_team']]
             recent_scores.append(match)
 
-    
     return flask.render_template('mini-league-table.html',
                                     table=          table, 
                                     start_date=     dt.datetime.strftime(start_date, "%d-%m-%Y"), 
                                     end_date=       dt.datetime.strftime(end_date, "%d-%m-%Y"),
                                     recent_scores=  recent_scores)
         
-
 
 @app.route('/teams', methods=["GET"])
 def teams():

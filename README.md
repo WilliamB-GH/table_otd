@@ -65,11 +65,11 @@ This app is designed to be as close to a one-click deployment as possible, thoug
 ### App Folder
 This is the main body of work, it contains all the python, html, css, javascript used to run the site, as well as the SQLite database it relies on.
 
-The pages are controlled from **app.py**, which handles all the user input. There is one function for each page, and a small function to provide an API to allow the head-to-head page to populate the list of teams to have been in the Premier League.
+The pages are controlled from **app.py**, which handles all the user input. There is one function for each page, and a small function to provide an API to allow the mini-league page to populate the list of teams to have been in the Premier League.
 
-**data.py** controls the database queries, the app is read-only as I decided that the ongoing maintainence of the site was beyond the scope of this project. As such when new data is entered it requires the site to be torn down and rebuilt, as well as a github commit to update the database. The get_results and get_mini_league_results functions have a lot of overlap and might at first glance seem like bad practice; however as I don't store a list of team IDs for a given season I use the get_results function to identify the team IDs, whereas for the mini-league page the user is responsible for selecting the teams they want to display. By using different functions 
+**data.py** controls the database queries, the app is read-only as I decided that the ongoing maintainence of the site was beyond the scope of this project. As such when new data is entered it requires the site to be torn down and rebuilt, as well as a github commit to update the database.
 
-**head_to_head.py** contains two functions specific to creating the head-to-head results graph, the first builds a numpy array to be consumed by the chart function which gives the number of wins and draws in the time frame. The second is a matplotlib-based function to create and return the chart as a fully fleshed out HTML tag.
+**headtohead.py** contains two functions specific to creating the head-to-head results graph, the first builds a numpy array to be consumed by the chart function which gives the number of wins and draws in the time frame. The second is a matplotlib-based function to create and return the chart as a fully fleshed out HTML tag.
 
 **helpers.py** does most of the heavy lifting of constructing tables, getting results, and most of the more generic odd jobs. 
 
@@ -83,11 +83,32 @@ fixtures.db is the SQLite database with all the results and teams stored. See th
 #### Static Folder
 **style.css** - Where possible I have preferred to use pure HTML & CSS over Javascript, for the benefit of performance and accessibility.
 
-**head-to-head.js** - Handles the Javascript to populate the team dropdowns. It does this by calling the /teams API from the app
+**head-to-head.js** - Validates the form input to ensure that values have been selected and are distinct, and that the selected dates make sense.
+
+**mini-league-picker.js** - Pulls the available team names asynchronously from the teams API to popualte the 'available' list. Also handles filtering the list, and moving teams between 'available' and 'selected' lists.
 
 #### Templates Folder
+**broken.html** - Error page, very perfunctory at the moment, but there are not many cases where you'd expect to see it owing to the simplicity of the site.
+
+**head-to-head-output.html** - returned by the head-to-head function of the app obviously, contains the graph a list of relevant fixtures between teams.
+
+**head-to-head.html** - collects input for the above, validates the team and date inputs to try and ensure that users cannot accidentally break the system.
+
+**index.html** - Renders the table as it exists on today's date by default. Users can navigate through weeks or select specific dates.
+
+**layout.html** - Standard HTML boilerplate and header/ footer for all the other pages.
+
+**mini-league-table.html** - Output from the mini-league function, it returns the table from the fixtures in the date range selected, as well as a tab to show the results themselves.
+
+**mini-league.html** - Allows users to select teams and dates for display in the table generated for the mini-league-table page. Most of the heavy lifting is done by the Javascript mini-league-picker file.
+
 ### Caddy Folder
 This is only for the Caddyfile referenced by docker-compose and the Caddy container. It takes an environment variable to allow the app to be deployed to a given domain on AWS. If no domain is provided in the docker-compose file, it defaults to localhost to enable testing. If used in production without a domain specified it is still possible to access the app using the IP address of the EC2 instance.
+
+### Other Files
+
+#### Terraform
+
 
 
 
@@ -106,4 +127,5 @@ This is only for the Caddyfile referenced by docker-compose and the Caddy contai
 + The app is currently greyscale, whilst this was by design to get around team-colour based tribalism and arguments, it would be good to make the head-to-head graph pull team-appropriate colours
 + I'd like to be able to make the app identify when a team has been relegated/ won the title etc.
 + Outside events that impact the table (points deductions for financial breaches for example) are not currently included.
++ As noted in the comments of the app.py head-to-head and mini-league functions, I should update the system later to more elegantly handle scenarios where no results are returned.
 

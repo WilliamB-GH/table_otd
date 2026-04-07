@@ -1,5 +1,11 @@
 import data
 import datetime as dt
+import flask
+from sys import getsizeof
+
+MAX_DATE = dt.datetime.today()
+MIN_DATE = dt.datetime.strptime('1992-08-01','%Y-%m-%d')
+DATE_SIZE = getsizeof("01-01-2000") # Constant to check the size of any date input.
 
 
 def results_construct(start_date:str, end_date:str, teams=None)->list[dict]:
@@ -159,3 +165,21 @@ def update_ids(matches, teams_dict):
             continue
     return matches
 
+
+def date_validation(input):
+    try:
+        if getsizeof(input) != DATE_SIZE:
+            print(f"Date input incorrect size: {input}")
+            return flask.render_template('broken.html')
+        
+        # Get input date
+        input_date = dt.datetime.strptime(input,'%Y-%m-%d')
+
+        # validate it's in bounds
+        if input_date > MAX_DATE:
+            input_date = MAX_DATE
+        elif input_date < MIN_DATE:
+            input_date = MIN_DATE
+        return input_date
+    except:
+        return flask.render_template('broken.html')
