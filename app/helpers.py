@@ -139,7 +139,7 @@ def build_teams_dict(output_date)->dict:
     teams = []
 
     # Get enough fixtures to be certain we've seen everyone
-    results = results_construct(start_date, start_date+MID_SEASON, data.get_results)
+    results = results_construct(start_date, start_date + MID_SEASON)
     # Build list of ids seen so far
     for result in results:
         if result['home_team'] not in teams:

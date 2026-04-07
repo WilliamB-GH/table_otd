@@ -34,7 +34,7 @@ This app is designed to be as close to a one-click deployment as possible, thoug
     + Clone the GitHub repo
     + cd into the directory you've saved the repo to.
     + Run: ```docker-compose up --build -d``` to build the containers and run it in detached mode
-    + Visit 'http://localhost:80'
+    + Visit 'http://localhost'
     + Run ```docker-compose down``` when you're finished
 
 

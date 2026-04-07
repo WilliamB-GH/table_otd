@@ -9,8 +9,18 @@
 <div class="container content">
     <form action="/head-to-head" method="POST" onsubmit="return validateForm()">
         <div class="content" style="gap: 1em;">
-            <select id="firstTeam" name="team"></select>
-            <select id="secondTeam" name="team"></select>
+            <select id="firstTeam" name="team">
+                <option value="">Please select a team</option>
+                {% for key, value in teams.items() %}
+                <option value="{{ key }}">{{ value }}</option>
+                {% endfor %}
+            </select>
+            <select id="secondTeam" name="team">
+                <option value="">Please select a team</option>
+                {% for key, value in teams.items() %}
+                <option value="{{ key }}">{{ value }}</option>
+                {% endfor %}
+            </select>
         </div>
         <div class="content" style="margin-top: 0.5em; display: inline-block; vertical-align: middle;">
             <label for="start_date">Start Date:</label>

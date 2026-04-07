@@ -9,14 +9,14 @@
     <div id="content-wrapper">
         <div class="content">
             <form action="/" method="post">
-                <button type="submit" class="button" name="prev_week" value="{{ page_args['date'] }}">&#60;&#60; Previous Week</button>
+                <button type="submit" class="button" name="prev_week" value="{{ page_args['date'] }}"><label>&#60;&#60; Previous Week</label></button>
             </form>
             <form action="/" method="post">  
                 <input type="date" class="date" name="table_date" min="{{ page_args['MIN_DATE']}}" max="{{ page_args['max_date'] }}" value="{{ page_args['date'] }}"/>
-                <button type="submit" class="button">Get Table</button>
+                <button type="submit" class="button"><label>Get Table</label></button>
             </form>
             <form action="/" method="post"> 
-                <button type="submit" class="button" name="next_week" value="{{ page_args['date'] }}">Next Week &#62;&#62;</button>
+                <button type="submit" class="button" name="next_week" value="{{ page_args['date'] }}"><label>Next Week &#62;&#62;</label></button>
             </form>
         </div>
         <div class="content">

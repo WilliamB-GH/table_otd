@@ -6,7 +6,7 @@ from sys import getsizeof
 
 # Local imports
 import data, helpers
-import head_to_head
+import headtohead
 import page_build as pb
 
 
@@ -17,8 +17,8 @@ MAX_DATE = dt.datetime.today()
 MIN_DATE = dt.datetime.strptime('1992-08-01','%Y-%m-%d')
 DATE_SIZE = getsizeof("01-01-2000") # Constant to check the size of any date input.
 PREM_TEAMS = set()
-for team in data.get_prem_team_names():
-    PREM_TEAMS.add(team['id'])
+for team in data.get_team_names().keys():
+    PREM_TEAMS.add(team)
 
 
 # Initialise Flask app
@@ -80,9 +80,14 @@ def index():
 @app.route('/head-to-head', methods=["GET", "POST"])
 def head_to_head():
 
+    teams = data.get_team_names()
+
+    # Base template
+    base_page = flask.render_template('head-to-head.html', teams=teams)
+
     # Show selection page if it's not a post request
     if flask.request.method != 'POST':
-        return flask.render_template('head-to-head.html')
+        return base_page
 
     # Try to initialise the variables from form input
     try:
@@ -100,7 +105,7 @@ def head_to_head():
     
     # Valdidate the same team hasn't been chosen twice
     if team_ids[0] == team_ids[1]:
-        return flask.render_template('head-to-head.html')
+        return base_page
 
     # Input validation is done now
 
@@ -108,18 +113,18 @@ def head_to_head():
     teams = data.get_team_names(team_ids)
     team_names = list(teams.values())
     
-    results = helpers.results_construct(start_date, end_date, data.get_mini_league_results, team_ids)
+    results = helpers.results_construct(start_date, end_date, team_ids)
     recent_scores = sorted(results, key=itemgetter('match_date'), reverse=True)
     for score in recent_scores:
         score['home_team'] = teams[score['home_team']]
         score['away_team'] = teams[score['away_team']]
  
-    chart_data = head_to_head.num_results(recent_scores, team_names)
-    chart = head_to_head.chart(chart_data, team_names)
+    chart_data = headtohead.num_results(recent_scores, team_names)
+    chart = headtohead.chart(chart_data, team_names)
 
     return flask.render_template('head-to-head-output.html', 
-                                    recent_scores=recent_scores,
-                                    chart=chart)     
+                                    recent_scores=  recent_scores,
+                                    chart=          chart)     
 
 
 @app.route('/mini-league', methods=["GET", "POST"])
@@ -179,10 +184,10 @@ def mini_league():
 
     
     return flask.render_template('mini-league-table.html',
-                                    table=table, 
-                                    start_date=dt.datetime.strftime(start_date, "%d-%m-%Y"), 
-                                    end_date=dt.datetime.strftime(end_date, "%d-%m-%Y"),
-                                    recent_scores=recent_scores)
+                                    table=          table, 
+                                    start_date=     dt.datetime.strftime(start_date, "%d-%m-%Y"), 
+                                    end_date=       dt.datetime.strftime(end_date, "%d-%m-%Y"),
+                                    recent_scores=  recent_scores)
         
 
 

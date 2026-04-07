@@ -3,7 +3,7 @@ const available = document.getElementById("available")
 const selected = document.getElementById("selected")
 const filter = document.getElementById("filter")
 
-// master data set
+// Master data set
 const teams = []
 const url = "/teams"
 
@@ -17,7 +17,7 @@ async function getTeams() {
         }));
 }
 
-// track selected values
+// Selected values
 const selectedValues = new Set()
 
 async function render() {
@@ -80,7 +80,7 @@ function removeAll() {
 
 }
 
-// initialise page with values populated from database
+// Initialise page with values populated from database
 async function init() {
     await getTeams()
     render()
