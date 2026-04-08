@@ -48,14 +48,15 @@ This app is designed to be as close to a one-click deployment as possible, thoug
     + Copy terraform.tf and startup.yaml locally
     + Public domain:
         + If you want to host on a public domain, you'll also need to download route53.tf
-        + Update line 50 of startup.yaml with your domain
+        + Update line 53 of startup.yaml with your domain
         + Update lines 2 & 8 of route53.tf with your domain
     + Direct IP connection only:
-        + Comment out line 50 of startup.yaml
+        + Comment out line 53 of startup.yaml
         + Do not download route53.tf
+    + Update line 105 of main.tf, also consider updating lines 2 & 19 if needed.
     + Run ```terraform init```
     + Run ```terraform apply```
-    + This will return the public IP address of the EC2 instance that gets created
+    + This will return the public IP address and public DNS of the EC2 instance that gets created
     + It will take a few minutes after the apply has finished before the startup script has finished running and the site is live
     + Run ```terraform destroy``` when you're ready to take the app down
 
@@ -108,24 +109,55 @@ This is only for the Caddyfile referenced by docker-compose and the Caddy contai
 ### Other Files
 
 #### Terraform
+**main.tf** - This is the bulk of the Terraform, it creates the majority of the cloud infrastructure. Most of this was created initially with AI, though I debugged it and tweaked it myself as needed to get it working. It uses the startup.yaml file to install docker compose onto the EC2 instance, clone the code, and start the containers. The outputs return the public IP address (in the case that you don't want to attach a domain to it), and the public DNS of the EC2 so it's easier to SSH into.
 
+**route53.tf** - This is an optional Terraform module to be used in the case you want to host the site on a public domain through AWS. The Name values in the file would need updating appropriately.
 
+**terraform.tf** - This is standard Terraform boilerplate, nothing interesting to see here.
 
+**startup.yaml** - The cloud-init file handling the update and installation of Docker and Docker Compose respectively, as Amazon Linux doesn't make it available by default. This file also clones the repo locally before building and starting the containers. A lot of this was created and debugged with AI as it was not something I'd come across at all before, with that said, as lot of the bash script in the runcmd block was sourced from other places and modified as needed.
+
+#### Docker
+
+**docker-compose.yaml** - This handles the complete creation of the Caddy container and calls app/dockerfile to create the container for the rest of the app.
+
+**app/dockerfile** - Spins up the app container and starts Gunicorn running so it can create worker processes to run the app.
 
 ### Database Schema
 ![Database schema diagram for ./app/fixtures.db](schema.svg)
 ## Design Choices
 
+A lot of the choices made in the creation of this app fundamentally assume that the volume of traffic will be minimal. In particular by using Caddy over Nginx we trade long term scalability for short term ease of configuration. Flask was chosen over Django for the same reason.
+
+The database is built on SQLite ahead of any of the heavier options (MySQL in particular) for several reasons, though they all boil down to the scale of the app. Specifically, the biggest advantages are that is can be packaged easily with the rest of the code, it doesn't need any configuration or even its own container.
+
+I've used Terraform to handle the could deployment as it's the language I'm most familiar with, as well as being widely used in industry.
+
+Obviously if the traffic levels increase by any meaningful amount a lot of the core infrastructure would struggle to meet demand. The EC2 instance I've selected is underpowered and there's no automatic scaling, either horizontally or vertically. If I was to build this as a genuine production system, where budget was less critical, I would probably host the containers in ECS and put it all behind an elastic load balancer. I'd consider Amazon RDS to host the data and allow for updates to be handled more easily. In this case I'd get rid of the Caddy container as it is effectively replaced by the ALB. I'd consider leaving the bulk of the app in Flask, as the system could be horizontally scaled so easily by ECS, and the site itself is very lightweight currently.
+
 ## Use of AI
+AI has been used at various points in this project, generally I have written all the Python myself, with the exception of the chart creation work in **headtohead.py** where the documentation for MatPlotLib is comprehensive enough to make it arduous to find every last property that I wanted to configure.
+
+The bulk of the mini-league-picker.js file is written with AI, as noted in the comments of said file. I considered implmenting a framework to handle this (and I may yet come back to that idea in the future), but in the first instance I wanted something in stock Javascript while I get to grips with the langauge. This also comes with performance and (to some extent) accessibility/ compatability benefits.
+
+The css was debugged with AI to get the layout to stack properly in a column-based layout.
+
+As mentioned previously, a lot of the infrastructure-as-code relied on AI to some extent or another, though it should be stressed it was not at the expense of understanding how to apply it. In particular I'm a lot more comfortable with cloud-init having effectively used this project and AI as a worked example for future projects.
 
 ## Accessibility
+The site is not very accessible or mobile friendly, although the colour contrast is generally good, and it handles high zoom levels reasonably, there are a raft of other issues that should be addressed in due course.
 
 ## Further Enhancements
-+ It'd be cool to update the site in place, or failing that, implement GitHub Actions to look for updates made to the database and when found redeploy the app.
-+ The site is not at all mobile friendly.
+
+As with any project of any meaningful size or complexity, there are always scores more things to implement or improve. I have decided that everything listed above is enough to consider the work functionally complete and more than meets my initial objective of being able to display the Premier League table for a given date in history. With all that said, 
+
++ The site is not at all mobile friendly at the moment, a fair amount of work is needed on both the HTML & CSS sides to sort that.
++ It would be good to update the site in place, or failing that, implement GitHub Actions to look for updates made to the database and when found redeploy the app.
 + I have built the teams & leagues tables of the database with the expectation of adding a lot more data to the app in due course.
 + The app is currently greyscale, whilst this was by design to get around team-colour based tribalism and arguments, it would be good to make the head-to-head graph pull team-appropriate colours
 + I'd like to be able to make the app identify when a team has been relegated/ won the title etc.
 + Outside events that impact the table (points deductions for financial breaches for example) are not currently included.
 + As noted in the comments of the app.py head-to-head and mini-league functions, I should update the system later to more elegantly handle scenarios where no results are returned.
++ I should update the database queries to pull the team names alongside the IDs, to save having to go back and replace them later, sometimes in multiple places.
++ The Terraform files are a rabbit hole, what I have here is reasonable for a very small site with no more than a couple of concurrent users, but if it were to grow, the existing Terraform should be thrown out and replaced with a much more flexible system with clearer sepearation of duties between modules (ie, separating the VPC configuration from the Instance setup).
 

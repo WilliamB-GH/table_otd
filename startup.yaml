@@ -14,7 +14,7 @@ users:
       - sudo
 
 runcmd:
-  # Log function to simplify logging
+  # Write logs to dedicated file
   - |
     export log_file="/var/log/cloud-init-script.log"
     echo "Starting cloud-init script at $(date)" > $log_file
@@ -35,7 +35,8 @@ runcmd:
     done
     echo "Docker is now ready at $(date)" >> $log_file
 
-  # Install buildx (Docker BuildKit)
+  # Install buildx
+  # Implementation taken from https://github.com/amazonlinux/amazon-linux-2023/issues/1032#issuecomment-3874686692
   - echo "Starting buildx installation at $(date)" >> $log_file
   - |
     ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
@@ -43,14 +44,19 @@ runcmd:
     curl -L $BUILDX_URL -o $HOME/.docker/cli-plugins/docker-buildx && chmod +x $HOME/.docker/cli-plugins/docker-buildx && echo "buildx installed at $(date)" >> $log_file
 
   # Install Docker Compose
+  # Implementation taken from https://www.reddit.com/r/docker/comments/1qm0rf6/comment/o1iwspe/
+  # This extends the github post above
   - echo "Starting Docker Compose installation at $(date)" >> $log_file
   - mkdir -p /usr/local/lib/docker/cli-plugins && curl -SL https://github.com/docker/compose/releases/download/v2.39.4/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose && chmod +x /usr/local/lib/docker/cli-plugins/docker-compose && echo "Docker Compose installed at $(date)" >> $log_file
 
-  # Environment variables
+  # Environment variables - update or comment out as needed.
   - echo "DOMAIN_NAME=prem-otd.wjmb.click" >> /etc/environment
 
   # Clone the repo, update the domain with the environment variable and bring up the containers
   - echo "Cloning repo and running containers at $(date)" >> $log_file
-  - sudo cd $HOME && git clone https://github.com/WilliamB-GH/table_otd.git && cd table_otd 
-  - sed -i "s/\${DOMAIN_NAME}/$DOMAIN_NAME/" docker-compose.yml
+  - sudo cd $HOME && git clone https://github.com/WilliamB-GH/table_otd.git && cd table_otd
+  
+  # This line updates the docker-compose file with the environment variable set above.
+  # If line 53 is commented out then the app can be accessed by direct IP connection only.
+  - sed -i "s/\${DOMAIN_NAME}/$DOMAIN_NAME/" docker-compose.yaml
   - sudo docker compose up -d && echo "Containers started at $(date)" >> $log_file

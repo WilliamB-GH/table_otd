@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "eu-west-2" 
+  region = "eu-west-2" # Update region here if needed
 }
 
 # Create VPC
@@ -16,7 +16,7 @@ resource "aws_vpc" "main" {
 resource "aws_subnet" "main" {
   vpc_id     = aws_vpc.main.id
   cidr_block = "10.0.1.0/24"
-  availability_zone = "eu-west-2a"
+  availability_zone = "eu-west-2a" # Update the availablity zone here if needed
   map_public_ip_on_launch = true
   tags = {
     Name = "prem-otd-subnet"
@@ -82,7 +82,8 @@ resource "aws_security_group" "ec2_sg" {
   }
 }
 
-# Cloud-init setup
+# Cloud-init setup - this assumes the startup.yaml is in the
+# same directory as this file.
 data "cloudinit_config" "startup" {
   gzip          = false
   base64_encode = false
@@ -101,7 +102,7 @@ resource "aws_instance" "main" {
   instance_type = "t2.nano"
   subnet_id     = aws_subnet.main.id
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
-  key_name      = "TableOTD"
+  key_name      = "TableOTD" # Delete this line or better yet replace with your own keyfile
   user_data = data.cloudinit_config.startup.rendered
 
   tags = {
@@ -111,11 +112,17 @@ resource "aws_instance" "main" {
   associate_public_ip_address = true
 }
 
-# Allocate an Elastic IP (EIP)
+# Allocate an Elastic IP
 resource "aws_eip" "main" {
   instance = aws_instance.main.id
 }
 
+# Return the public IP
 output "public_ip" {
   value = aws_eip.main.public_ip
+}
+
+# Return Public DNS
+output "public_dns" {
+  value = aws_instance.main.public_dns
 }

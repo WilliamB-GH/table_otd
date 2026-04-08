@@ -196,13 +196,14 @@ def mini_league():
     
     table = helpers.make_table(results, table)
 
+    # Replace team IDs with names
     teams_dict = data.get_team_names(team_ids)
     for team in table:
         team['id'] = teams_dict[team['id']]
 
+    # Sort table by points, goal difference and goals scored.
     table = sorted(table, key=itemgetter('points', 'goal_difference', 
                                         'goals_for'), reverse=True)
-    
     recent_scores = []
     scores = helpers.get_fixture_range(start_date, end_date)
     for match in scores:
